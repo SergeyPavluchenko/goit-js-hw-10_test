@@ -5,8 +5,6 @@ const URL = 'https://api.thecatapi.com/v1';
 API_KEY =
   'live_rnnYDp9s8iR62R9IizxA0JiibxhK2dxyt24ridFGGcAZS6MkHaeULrqjFpOhJr5E';
 
-select.addEventListener('change', fetchCatByBreed);
-
 function searchCat(data) {
   return fetch(`${URL}/breeds?api_key=${API_KEY}`)
     .then(resp => {
@@ -29,19 +27,35 @@ function markup(arr) {
   select.innerHTML = markup;
 }
 
-function fetchCatByBreed(eve) {
-  console.log(eve.currentTarget.value);
+select.addEventListener('change', onSelectedBreed);
+
+function onSelectedBreed(id) {
+  console.log(id.currentTarget.value);
+  const breedId = id.currentTarget.value;
+
+  function fetchCatByBreed(breedsId) {
+    return fetch(
+      `${URL}/images/search?api_key=${API_KEY}&breed_ids=${breedsId}`
+    )
+      .then(resp => {
+        if (!resp.ok) {
+          throw new Error(resp.statusText);
+        }
+        console.log(resp);
+        return resp.json();
+      })
+      .catch(err => console.error(err));
+  }
+  fetchCatByBreed(breedId).then(data => murkupCatInfo(data));
 }
 
-// function fetchBreeds(cat) {
-//   console.log(cat.name);
-
-//   const nameCat = document.createElement('h2');
-//   nameCat.textContent = cat.name;
-//   const descriptionCat = document.createElement('h3');
-//   descriptionCat.textContent = cat.description;
-//   const temperamentCat = document.createElement('h4');
-//   temperamentCat.textContent = cat.temperament;
-
-//   catInfoBody.append(nameCat, descriptionCat, temperamentCat);
-// }
+function murkupCatInfo(data) {
+  const { breeds, url } = data[0];
+  const murkup = `
+    <img src="${url}" alt="${breeds[0].name}" width=300>
+    <H2>${breeds[0].name}</H2>
+    <h3>${breeds[0].description}</h3>
+    <h3>${breeds[0].temperament}</h3>
+  `;
+  catInfoBody.innerHTML = murkup;
+}
